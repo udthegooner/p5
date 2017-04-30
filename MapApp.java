@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -176,8 +177,69 @@ public class MapApp {
 	 */
 
 	public static NavigationGraph createNavigationGraphFromMapFile(String graphFilepath) throws FileNotFoundException, InvalidFileException {
-			// TODO: read/parse the input file graphFilepath and create
-			// NavigationGraph with vertices and edges
+			// File input stream
+			FileInputStream fileByteStream = null;
+			// Scanner object
+			Scanner inFS = null;
+			// Holds entire file in String
+			String fileString = "";
+			// Holds each individual line of file
+			String[] fileLines;
+			// Holds each parameter of each line in 2D array
+			String[][] fileWords;
+			// New Navigation Graph
+			NavigationGraph navigationGraph;
+			// Stores edge properties
+			String[] edgeProperties;
+		
+		    try {
+		    	// Pulls in data from file
+		    	fileByteStream = new FileInputStream(graphFilepath);
+		    	inFS = new Scanner(fileByteStream);
+		    }
+		    catch(FileNotFoundException exception) {
+		    	throw new FileNotFoundException();
+		    }
+		    
+		    // Puts each new line of data from file in placeString
+		    while (inFS.hasNextLine()) {
+		    	fileString = fileString.concat("\n" + inFS.nextLine());
+		    }
+		    
+		    // Breaks up fileString into a unique array location at each line
+		    // NOTE: The first index will be null, this is dealt with when
+		    // converting to fileWords.
+		    fileLines = fileString.split("\n");
+		    
+		    // Instantiate 2D array to hold individual words
+		    fileWords = new String[fileLines.length - 1][10];
+		    
+		    for (int i = 1; i < fileLines.length; i++) {
+		    	fileWords[i - 1] = fileLines[i].split("\\s+");
+		    }
+
+		    // UNCOMMENT TO SEE HOW ARRAY OF WORDS LOOKS
+//		    for (int i = 0; i < fileWords.length; i++) {
+//		    	for (int j = 0; j < fileWords[i].length; j++) {
+//		    		System.out.println(fileWords[i][j]);
+//		    	}
+//		    }
+		    
+		    // Parse edge Properties
+		    edgeProperties = new String[fileWords[0].length - 2];
+		    for (int i = 2; i < fileWords[0].length; i++) {
+		    	edgeProperties[i - 2] = fileWords[0][i]; 
+		    }
+		    
+		    // UNCOMMENT TO SEE HOW PROPERTIES ARRAY LOOKS
+//		    for (int i = 0; i < edgeProperties.length; i++) {
+//		    	System.out.println(edgeProperties[i]);
+//		    }
+		    
+		    // Instantiate navigationGraph
+		    navigationGraph = new NavigationGraph(edgeProperties);
+		    
+		
 			return null;
 
 	}
