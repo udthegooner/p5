@@ -49,7 +49,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		
 		//For each node in the list, check to see if its name matches the parameter
 		for (int i = 0; i < nodes.size(); i++)
-			if (nodes.get(i).getVertexData().getName().equals(name))
+			if (nodes.get(i).getVertexData().getName().equalsIgnoreCase(name))
 				return nodes.get(i).getVertexData();
 		
 		//Else return null
@@ -70,7 +70,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		}
 		
 		//check if location to be added already exists in graph
-		if (!vertices.contains(vertex)){
+		if (!verticesContains(vertex)){
 			nodes.add(new GraphNode<Location, Path>(vertex, uniqueID));
 			vertices.add(vertex);
 			uniqueID++;
@@ -94,9 +94,9 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		// loop that runs through nodes list
 		for (int i = 0; i < nodes.size(); i++)
 			//check if node location matches src
-			if (nodes.get(i).equals(src)) {
+			if (nodes.get(i).getVertexData().equals(src)) {
 				//check if vertices contains destination
-				if (vertices.contains(dest)){
+				if (verticesContains(dest)){
 					nodes.get(i).addOutEdge(edge);
 					flag = 2;
 				}
@@ -160,9 +160,9 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	@Override
 	public List<Path> getOutEdges(Location src) {
 		for (int i = 0; i < nodes.size(); i++)
-			if (nodes.get(i).equals(src))
+			if (nodes.get(i).getVertexData().equals(src))
 				return nodes.get(i).getOutEdges();
-		throw new IllegalArgumentException("Source destination does not exist");
+		throw new IllegalArgumentException("Source location does not exist");
 	}
 
 	/**
@@ -218,10 +218,22 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	public String toString(){
 		String graph = "";
 		//Print the graph data stored, e.g. print the adjacency list
-		for (GraphNode<Location, Path> node : nodes) {
-			graph += node.toString();
+		for (int i=0; i<uniqueID - 1; i++) {
+			graph += nodes.get(i).toString() + "\n";
 		}
+		graph += nodes.get(uniqueID- 1).toString();
 		//return string representation of adjacency list
 		return graph;
 	}
+	
+	private boolean verticesContains(Location testLocation){
+		int flag = 0;
+		for (Location x: vertices)
+			if (x.equals(testLocation)){
+				flag = 1;
+				break;
+			}
+		return (flag==1);
+	}
 }
+
