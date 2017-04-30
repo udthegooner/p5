@@ -207,9 +207,9 @@ public class MapApp {
 		    for (int i=1; i<fileLines.size(); i++){
 		    	String[] words = fileLines.get(i).split(" ");
 		    	
-			    Location src = new Location(words[0]);
+			    Location src = new Location(words[0].toLowerCase());
 			    navigationGraph.addVertex(src);
-			    Location dest = new Location(words[1]);
+			    Location dest = new Location(words[1].toLowerCase());
 			    navigationGraph.addVertex(dest);
 			    
 			    List<Double> pathProperties = new ArrayList<Double>();

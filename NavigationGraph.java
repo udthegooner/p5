@@ -49,7 +49,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		
 		//For each node in the list, check to see if its name matches the parameter
 		for (int i = 0; i < nodes.size(); i++)
-			if (nodes.get(i).getVertexData().getName().equals(name))
+			if (nodes.get(i).getVertexData().getName().equalsIgnoreCase(name))
 				return nodes.get(i).getVertexData();
 		
 		//Else return null
@@ -160,9 +160,9 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	@Override
 	public List<Path> getOutEdges(Location src) {
 		for (int i = 0; i < nodes.size(); i++)
-			if (nodes.get(i).equals(src))
+			if (nodes.get(i).getVertexData().equals(src))
 				return nodes.get(i).getOutEdges();
-		throw new IllegalArgumentException("Source destination does not exist");
+		throw new IllegalArgumentException("Source location does not exist");
 	}
 
 	/**
@@ -218,9 +218,10 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	public String toString(){
 		String graph = "";
 		//Print the graph data stored, e.g. print the adjacency list
-		for (int i=0; i<uniqueID; i++) {
-			graph += nodes.get(i).toString();
+		for (int i=0; i<uniqueID - 1; i++) {
+			graph += nodes.get(i).toString() + "\n";
 		}
+		graph += nodes.get(uniqueID- 1).toString();
 		//return string representation of adjacency list
 		return graph;
 	}
