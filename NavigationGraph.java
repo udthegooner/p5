@@ -196,7 +196,42 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	 */
 	@Override
 	public List<Path> getShortestRoute(Location src, Location dest, String edgePropertyName) {
-		// TODO Auto-generated method stub
+		//Unknown distance from source to destination set to infinity
+		double minDistance = Double.POSITIVE_INFINITY;
+		
+		PriorityQueueEntry source;
+		PriorityQueueEntry v;
+		
+		//Create vertex set Q
+		PriorityQueue<PriorityQueueEntry> pq = new PriorityQueue<PriorityQueueEntry>();
+		//Find the src Location within the list of GraphNodes
+		for (GraphNode<Location, Path> node : nodes) {
+			if (src.equals(node.getVertexData())) {
+				//Initialize src entry weight to 0
+				 source = new PriorityQueueEntry(0, node);
+			}
+			//v != src
+			else{
+				//Unknown distance from source to v assumed to be infinity
+				v = new PriorityQueueEntry(minDistance, node);
+				//Add to priority queue
+				pq.add(v);
+			}
+		}
+
+		//The main loop
+		while (!pq.isEmpty()) {
+			//Remove and return the best vertex
+			pq.remove();
+			//Only v that is still in Q
+			
+			//TODO
+			
+			
+			
+			
+
+		}
 		return null;
 	}
 
