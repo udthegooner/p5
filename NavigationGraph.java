@@ -22,7 +22,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	private String[] edgePropertyNames; //String array that holds edge properties (e.g. Time, Cost)
 	private int uniqueID; //UniqueID for incoming node
 	private List<Location> vertices; //List of vertices to cut down on complexity with getVertices method
-	private PriorityQueue<GraphNode<Location, Path>> pq;
+
 	
 	/**
 	 * Constructor for NavigationGraph
@@ -49,7 +49,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		
 		//For each node in the list, check to see if its name matches the parameter
 		for (int i = 0; i < nodes.size(); i++)
-			if (nodes.get(i).getVertexData().getName().equals(name))
+			if (nodes.get(i).getVertexData().getName().equalsIgnoreCase(name))
 				return nodes.get(i).getVertexData();
 		
 		//Else return null
@@ -70,7 +70,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		}
 		
 		//check if location to be added already exists in graph
-		if (!vertices.contains(vertex)){
+		if (!verticesContains(vertex)){
 			nodes.add(new GraphNode<Location, Path>(vertex, uniqueID));
 			vertices.add(vertex);
 			uniqueID++;
@@ -94,9 +94,9 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		// loop that runs through nodes list
 		for (int i = 0; i < nodes.size(); i++)
 			//check if node location matches src
-			if (nodes.get(i).equals(src)) {
+			if (nodes.get(i).getVertexData().equals(src)) {
 				//check if vertices contains destination
-				if (vertices.contains(dest)){
+				if (verticesContains(dest)){
 					nodes.get(i).addOutEdge(edge);
 					flag = 2;
 				}
@@ -134,6 +134,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	@Override
 	public Path getEdgeIfExists(Location src, Location dest) {
 		
+		
 		//loop that runs through nodes list until node with src is found
 		for (GraphNode<Location, Path> node: nodes)
 			//check if node location is same as src
@@ -160,9 +161,9 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	@Override
 	public List<Path> getOutEdges(Location src) {
 		for (int i = 0; i < nodes.size(); i++)
-			if (nodes.get(i).equals(src))
+			if (nodes.get(i).getVertexData().equals(src))
 				return nodes.get(i).getOutEdges();
-		throw new IllegalArgumentException("Source destination does not exist");
+		throw new IllegalArgumentException("Source location does not exist");
 	}
 
 	/**
@@ -196,43 +197,110 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	 */
 	@Override
 	public List<Path> getShortestRoute(Location src, Location dest, String edgePropertyName) {
+		
+		int propertyNumber = 0;
+		String[] edgePropertyNames = getEdgePropertyNames();
+		for (int i = 0; i < edgePropertyNames.length; i++) {
+			if (edgePropertyName.equals(edgePropertyNames[i])) {
+				propertyNumber = i;
+				break;
+			}
+		}
+		
+		PriorityQueueEntry source = null;
+
+		ArrayList<PriorityQueueEntry> pqEntryList = new ArrayList<PriorityQueueEntry>();
+
 		//Unknown distance from source to destination set to infinity
 		double minDistance = Double.POSITIVE_INFINITY;
-		
-		PriorityQueueEntry source;
-		PriorityQueueEntry v;
-		
-		//Create vertex set Q
-		PriorityQueue<PriorityQueueEntry> pq = new PriorityQueue<PriorityQueueEntry>();
-		//Find the src Location within the list of GraphNodes
+
+
+		//For each vertex V
 		for (GraphNode<Location, Path> node : nodes) {
+			
+			//initialize V's weight to infinity
+			//initialize V's prev to null
+			PriorityQueueEntry entry = new PriorityQueueEntry(minDistance, node, null);
+			
+			pqEntryList.add(entry);
+			
+			//Set src vertex's weight to 0
 			if (src.equals(node.getVertexData())) {
 				//Initialize src entry weight to 0
-				 source = new PriorityQueueEntry(0, node);
-			}
-			//v != src
-			else{
-				//Unknown distance from source to v assumed to be infinity
-				v = new PriorityQueueEntry(minDistance, node);
-				//Add to priority queue
-				pq.add(v);
+				source = entry;
+				source.setWeight(0);
 			}
 		}
-
+		
+		//Create new priority queue pq
+		PriorityQueue<PriorityQueueEntry> pq = new PriorityQueue<PriorityQueueEntry>();
+		
+		pq.add(source);
+		
 		//The main loop
 		while (!pq.isEmpty()) {
+		
 			//Remove and return the best vertex
-			pq.remove();
-			//Only v that is still in Q
+			PriorityQueueEntry C = pq.remove();
+			//Set C's visited mark to true
+			C.setVisited();
 			
-			//TODO
+			ArrayList<PriorityQueueEntry> successors = new ArrayList<PriorityQueueEntry>();
 			
+			for (Location neighbor: getNeighbors(C.getNode().getVertexData())) 
+				for (PriorityQueueEntry pqEntry : pqEntryList) 
+					if (!pqEntry.isVisited()) 
+						if (pqEntry.getNode().getVertexData().equals(neighbor)) {
+							successors.add(pqEntry);
+							break;
+						}
 			
-			
-			
-
+			for (PriorityQueueEntry successor : successors) {
+				List<Double> weights = getEdgeIfExists(C.getNode().getVertexData(), successor.getNode().getVertexData()).getProperties();
+				
+				double possibleWeight = C.getWeight() + weights.get(propertyNumber);
+				
+				if (successor.getWeight() > possibleWeight) {
+					if (pq.contains(successor)) {
+						pq.remove(successor);
+					}
+					successor.setWeight(possibleWeight);
+					successor.setPrev(C);
+					pq.add(successor);
+					
+				}
+				
+			}
 		}
-		return null;
+		
+		List<Path> shortestPath = new ArrayList<Path>();
+		PriorityQueueEntry current = null;
+		PriorityQueueEntry prev    = null;
+		
+		for (PriorityQueueEntry pqEntry : pqEntryList) {
+			if (pqEntry.getNode().getVertexData().equals(dest)) {
+				current = pqEntry;
+			}
+		}
+		
+		int flag = 0;
+		
+		while (flag == 0) {
+			prev = current.getPrev();
+			Path edge = getEdgeIfExists(prev.getNode().getVertexData(), current.getNode().getVertexData());
+			if (edge == null) {
+				break;
+			}
+			shortestPath.add(0, edge);
+			if (prev.getNode().getVertexData().equals(src)) {
+				flag = 1;
+			}
+			else {
+				current = prev;
+			}
+		}
+		
+		return shortestPath;
 	}
 
 	/**
@@ -253,10 +321,21 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	public String toString(){
 		String graph = "";
 		//Print the graph data stored, e.g. print the adjacency list
-		for (GraphNode<Location, Path> node : nodes) {
-			graph += node.toString();
+		for (int i=0; i<uniqueID - 1; i++) {
+			graph += nodes.get(i).toString() + "\n";
 		}
+		graph += nodes.get(uniqueID- 1).toString();
 		//return string representation of adjacency list
 		return graph;
+	}
+	
+	private boolean verticesContains(Location testLocation){
+		int flag = 0;
+		for (Location x: vertices)
+			if (x.equals(testLocation)){
+				flag = 1;
+				break;
+			}
+		return (flag==1);
 	}
 }
