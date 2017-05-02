@@ -17,13 +17,13 @@ import java.util.ArrayList;
  * @author Lacy
  */
 public class NavigationGraph implements GraphADT<Location, Path> {
-	
+
 	private List<GraphNode<Location, Path>> nodes; //ArrayList that holds GraphNodes
 	private String[] edgePropertyNames; //String array that holds edge properties (e.g. Time, Cost)
 	private int uniqueID; //UniqueID for incoming node
 	private List<Location> vertices; //List of vertices to cut down on complexity with getVertices method
 
-	
+
 	/**
 	 * Constructor for NavigationGraph
 	 */
@@ -33,7 +33,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		this.vertices = new ArrayList<Location>();
 		this.uniqueID = 0;
 	}
-	
+
 	/**
 	 * Returns a Location object given its name
 	 * 
@@ -46,12 +46,12 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		if (name == null) {
 			throw new IllegalArgumentException();
 		}
-		
+
 		//For each node in the list, check to see if its name matches the parameter
 		for (int i = 0; i < nodes.size(); i++)
 			if (nodes.get(i).getVertexData().getName().equalsIgnoreCase(name))
 				return nodes.get(i).getVertexData();
-		
+
 		//Else return null
 		return null;  
 	}
@@ -68,7 +68,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		if (vertex == null) {
 			throw new IllegalArgumentException();
 		}
-		
+
 		//check if location to be added already exists in graph
 		if (!verticesContains(vertex)){
 			nodes.add(new GraphNode<Location, Path>(vertex, uniqueID));
@@ -90,7 +90,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	@Override
 	public void addEdge(Location src, Location dest, Path edge) {
 		int flag = 0;
-		
+
 		// loop that runs through nodes list
 		for (int i = 0; i < nodes.size(); i++)
 			//check if node location matches src
@@ -105,7 +105,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 				break;
 			}
 
-			
+
 		if (flag == 0)
 			throw new IllegalArgumentException("Source location not found");
 		else if (flag == 1)
@@ -133,8 +133,8 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	 */
 	@Override
 	public Path getEdgeIfExists(Location src, Location dest) {
-		
-		
+
+
 		//loop that runs through nodes list until node with src is found
 		for (GraphNode<Location, Path> node: nodes)
 			//check if node location is same as src
@@ -146,7 +146,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 						return edge;
 				return null;
 			}
-		
+
 		//TODO what do we do if src or dest do not exist. Piazza post made.
 		return null;
 	}
@@ -179,7 +179,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		List<Location> neighbors = new ArrayList<Location>();
 		for (Path path: edges)
 			neighbors.add(path.getDestination());
-		
+
 		return neighbors;
 	}
 
@@ -197,7 +197,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 	 */
 	@Override
 	public List<Path> getShortestRoute(Location src, Location dest, String edgePropertyName) {
-		
+
 		int propertyNumber = 0;
 		String[] edgePropertyNames = getEdgePropertyNames();
 		for (int i = 0; i < edgePropertyNames.length; i++) {
@@ -206,7 +206,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 				break;
 			}
 		}
-		
+
 		PriorityQueueEntry source = null;
 
 		ArrayList<PriorityQueueEntry> pqEntryList = new ArrayList<PriorityQueueEntry>();
@@ -217,13 +217,13 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 
 		//For each vertex V
 		for (GraphNode<Location, Path> node : nodes) {
-			
+
 			//initialize V's weight to infinity
 			//initialize V's prev to null
 			PriorityQueueEntry entry = new PriorityQueueEntry(minDistance, node, null);
-			
+
 			pqEntryList.add(entry);
-			
+
 			//Set src vertex's weight to 0
 			if (src.equals(node.getVertexData())) {
 				//Initialize src entry weight to 0
@@ -231,22 +231,22 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 				source.setWeight(0);
 			}
 		}
-		
+
 		//Create new priority queue pq
 		PriorityQueue<PriorityQueueEntry> pq = new PriorityQueue<PriorityQueueEntry>();
-		
+
 		pq.add(source);
-		
+
 		//The main loop
 		while (!pq.isEmpty()) {
-		
+
 			//Remove and return the best vertex
 			PriorityQueueEntry C = pq.remove();
 			//Set C's visited mark to true
 			C.setVisited();
-			
+
 			ArrayList<PriorityQueueEntry> successors = new ArrayList<PriorityQueueEntry>();
-			
+
 			for (Location neighbor: getNeighbors(C.getNode().getVertexData())) 
 				for (PriorityQueueEntry pqEntry : pqEntryList) 
 					if (!pqEntry.isVisited()) 
@@ -254,12 +254,12 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 							successors.add(pqEntry);
 							break;
 						}
-			
+
 			for (PriorityQueueEntry successor : successors) {
 				List<Double> weights = getEdgeIfExists(C.getNode().getVertexData(), successor.getNode().getVertexData()).getProperties();
-				
+
 				double possibleWeight = C.getWeight() + weights.get(propertyNumber);
-				
+
 				if (successor.getWeight() > possibleWeight) {
 					if (pq.contains(successor)) {
 						pq.remove(successor);
@@ -267,39 +267,38 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 					successor.setWeight(possibleWeight);
 					successor.setPrev(C);
 					pq.add(successor);
-					
+
 				}
-				
+
 			}
 		}
-		
+
 		List<Path> shortestPath = new ArrayList<Path>();
 		PriorityQueueEntry current = null;
 		PriorityQueueEntry prev    = null;
-		
+
 		for (PriorityQueueEntry pqEntry : pqEntryList) {
 			if (pqEntry.getNode().getVertexData().equals(dest)) {
 				current = pqEntry;
 			}
 		}
-		
+
 		int flag = 0;
-		
+
 		while (flag == 0) {
+
 			prev = current.getPrev();
+			if (prev == null) {
+				break;
+			}
 			Path edge = getEdgeIfExists(prev.getNode().getVertexData(), current.getNode().getVertexData());
 			if (edge == null) {
 				break;
 			}
 			shortestPath.add(0, edge);
-			if (prev.getNode().getVertexData().equals(src)) {
-				flag = 1;
-			}
-			else {
-				current = prev;
-			}
+			current = prev;
 		}
-		
+
 		return shortestPath;
 	}
 
@@ -328,7 +327,7 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		//return string representation of adjacency list
 		return graph;
 	}
-	
+
 	private boolean verticesContains(Location testLocation){
 		int flag = 0;
 		for (Location x: vertices)
@@ -339,3 +338,4 @@ public class NavigationGraph implements GraphADT<Location, Path> {
 		return (flag==1);
 	}
 }
+
